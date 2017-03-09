@@ -3,6 +3,7 @@ package top.sandwwraith.simpleservers
 import org.slf4j.LoggerFactory
 import java.net.HttpURLConnection
 import java.net.URL
+import java.net.URLEncoder
 
 /**
  * @author Leonid Startsev
@@ -13,9 +14,9 @@ import java.net.URL
 class Client {
     private val Log = LoggerFactory.getLogger(this.javaClass)
 
-    fun send(msg: String, address: String = "localhost", port: Int = 8080) {
+    fun send(fromId: Int, msg: String, time: Int, address: String = "localhost", port: Int = 8080) {
         try {
-            val conn = URL("http://$address:$port?msg=$msg")
+            val conn = URL("http://$address:$port?msg=${URLEncoder.encode(msg, "UTF-8")}&id=$fromId&time=$time")
                     .openConnection() as HttpURLConnection
 
             conn.connect()

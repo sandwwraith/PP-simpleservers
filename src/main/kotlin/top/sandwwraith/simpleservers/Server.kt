@@ -12,18 +12,20 @@ import java.net.URLDecoder
  * 		  ITMO University, 2017
  **/
 
-class Server(port: Int = 8080) {
+class Server(port: Int = 8080, private val clock: LamportClock) {
     private val httpServer = AppServer(AppConfiguration(port = port))
 
     private val Log = LoggerFactory.getLogger(this.javaClass)
 
     private val responder = routeHandler {
+        val from = request.queryParams["id"]?.toIntOrNull()
         val msg = request.queryParams["msg"]
-        if (msg != null) {
-            Log.info("Got message: ${URLDecoder.decode(msg,"UTF-8")}")
+        val time = request.queryParams["time"]?.toIntOrNull()
+        if (from != null && msg != null && time != null) {
+            Log.info("received from:$from msg:${URLDecoder.decode(msg, "UTF-8")} time:${clock.updateTime(time)}")
             response.statusCode = 200
         } else {
-            Log.error("Message parameter not specified")
+            Log.error("Necessary parameters were not specified or incorrect!")
             response.statusCode = 400
         }
     }
