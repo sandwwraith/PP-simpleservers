@@ -35,7 +35,7 @@ dependencies {
 def outputDir = new File(project.buildDir, 'output')
 
 task copyAddons(type: Copy) {
-    from 'process.cfg', 'run_process.sh'
+    from 'process.cfg'
     into outputDir
 }
 
@@ -49,6 +49,16 @@ task fatJar(type: Jar, dependsOn: 'copyAddons') {
     baseName = project.name + '-all'
     from { configurations.compile.collect { it.isDirectory() ? it : zipTree(it) } }
     with jar
+
+    //create runner file
+    doLast {
+        def f = new File(outputDir, 'run_process.sh')
+        f.newWriter().withWriter {
+            it << "#!/usr/bin/env bash\n"
+            it << "java -jar $baseName-${version}.jar \$1"
+        }
+        f.executable = true
+    }
 }
 
 defaultTasks 'clean', 'fatJar'
