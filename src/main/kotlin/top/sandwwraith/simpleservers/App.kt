@@ -1,6 +1,5 @@
 package top.sandwwraith.simpleservers
 
-import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import java.util.regex.Pattern
 import kotlin.system.exitProcess
@@ -12,11 +11,11 @@ import kotlin.system.exitProcess
  * 		  ITMO University, 2017
  **/
 
-private inline fun <T> runOrFatal(log: Logger, block: () -> T): T {
+private inline fun <T> runOrFatal(block: () -> T, loggingAction: (Exception) -> Any?): T {
     try {
         return block()
     } catch (e: Exception) {
-        log.error(e.message, e)
+        loggingAction(e)
         exitProcess(-1)
     }
 }
@@ -33,14 +32,14 @@ private fun parseSendCommand(line: String): Pair<Int, String>? {
 fun main(args: Array<String>) {
     val log = LoggerFactory.getLogger("top.sandwwraith.App")
 
-    val myId = runOrFatal(log) { args[0].toInt() }
-    val router = runOrFatal(log) { Router() }
-    val port = runOrFatal(log) { router[myId].second }
+    val myId = runOrFatal({ args[0].toInt() }, { log.error("ID of this process should be specified as a command-line argument", it) })
+    val router = runOrFatal({ Router() }, { log.error("Error reading config file", it) })
+    val port = runOrFatal({ router[myId].second }, { log.error("Can't find port in config file for this ID", it) })
     val clock = LamportClock()
 
+    log.info("Starting server... My id: $myId, my port: $port")
     val server = Server(port, clock).apply { start(wait = false) }
-    log.info("My id:$myId, my port:$port")
-    log.info("Hit ^D to stop server")
+    log.info("Started. Hit ^D to stop server")
 
     val client = Client()
 
@@ -57,9 +56,7 @@ fun main(args: Array<String>) {
                     client.send(myId, msg, clock.sendTime, router[id].first, router[id].second)
                 } ?: log.warn("Send command is incorrect")
             }
-            else -> {
-                log.warn("Unknown command")
-            }
+            else -> log.warn("Unknown command")
         }
     }
 }
