@@ -1,6 +1,8 @@
 package top.sandwwraith.simpleservers
 
+import org.slf4j.Logger
 import org.slf4j.LoggerFactory
+import kotlin.system.exitProcess
 
 
 /**
@@ -9,12 +11,24 @@ import org.slf4j.LoggerFactory
  * 		  ITMO University, 2017
  **/
 
-fun main(args: Array<String>) {
-    val l = LoggerFactory.getLogger("top.sandwwraith.App")
+private inline fun <T> runOrFatal(log: Logger, block: () -> T): T {
+    try {
+        return block()
+    } catch (e: Exception) {
+        log.error(e.message, e)
+        exitProcess(-1)
+    }
+}
 
-    val server = Server().apply { start(wait = false) }
-    l.info("Type msg <message> to send message")
-    l.info("Hit ^D to stop server")
+fun main(args: Array<String>) {
+    val log = LoggerFactory.getLogger("top.sandwwraith.App")
+
+    val myId = runOrFatal(log) { args[0].toInt() }
+    val router = runOrFatal(log) { Router() }
+
+    val server = Server(port = router[myId].second).apply { start(wait = false) }
+    log.info("Type msg <message> to send message")
+    log.info("Hit ^D to stop server")
 
     val client = Client()
 
@@ -22,7 +36,7 @@ fun main(args: Array<String>) {
         val com = readLine()
         when {
             com.isNullOrEmpty() -> {
-                l.info("Shutting down")
+                log.info("Shutting down")
                 server.stop()
                 break@loop
             }
@@ -31,7 +45,7 @@ fun main(args: Array<String>) {
                 if (msg.isNotBlank()) client.send(msg)
             }
             else -> {
-                l.warn("Unknown command")
+                log.warn("Unknown command")
             }
         }
     }

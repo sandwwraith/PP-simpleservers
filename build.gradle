@@ -2,8 +2,8 @@ group 'top.sandwwraith'
 version '1.0-SNAPSHOT'
 
 task wrapper(type: Wrapper) {
-  gradleVersion = '3.1'
-  distributionUrl = "https://services.gradle.org/distributions/gradle-$gradleVersion-all.zip"
+    gradleVersion = '3.3'
+    distributionUrl = "https://services.gradle.org/distributions/gradle-$gradleVersion-all.zip"
 }
 
 buildscript {
@@ -21,7 +21,7 @@ apply plugin: 'kotlin'
 
 repositories {
     mavenCentral()
-    maven{
+    maven {
         url 'https://dl.bintray.com/wasabifx/wasabifx/'
     }
 }
@@ -32,8 +32,16 @@ dependencies {
     compile 'org.wasabifx:wasabi:0.3.120'
 }
 
+def outputDir = new File(project.buildDir, 'output')
+
+task copyAddons(type: Copy) {
+    from 'process.cfg', 'run_process.sh'
+    into outputDir
+}
+
 //create a single Jar with all dependencies
-task fatJar(type: Jar) {
+task fatJar(type: Jar, dependsOn: 'copyAddons') {
+    destinationDir = outputDir
     manifest {
         attributes 'Implementation-Version': version,
                 'Main-Class': 'top.sandwwraith.simpleservers.AppKt'
@@ -42,3 +50,5 @@ task fatJar(type: Jar) {
     from { configurations.compile.collect { it.isDirectory() ? it : zipTree(it) } }
     with jar
 }
+
+defaultTasks 'clean', 'fatJar'

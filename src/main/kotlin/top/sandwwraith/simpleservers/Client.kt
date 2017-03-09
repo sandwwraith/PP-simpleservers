@@ -13,9 +13,9 @@ import java.net.URL
 class Client {
     private val Log = LoggerFactory.getLogger(this.javaClass)
 
-    fun send(msg: String) {
+    fun send(msg: String, address: String = "localhost", port: Int = 8080) {
         try {
-            val conn = URL("http://localhost:8080?msg=$msg")
+            val conn = URL("http://$address:$port?msg=$msg")
                     .openConnection() as HttpURLConnection
 
             conn.connect()
