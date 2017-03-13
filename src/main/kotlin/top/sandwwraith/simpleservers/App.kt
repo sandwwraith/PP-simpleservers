@@ -1,3 +1,4 @@
+@file:JvmName("App")
 package top.sandwwraith.simpleservers
 
 import org.slf4j.LoggerFactory
@@ -43,20 +44,18 @@ fun main(args: Array<String>) {
 
     val client = Client()
 
-    loop@ while (true) {
-        val com = readLine()
-        when {
-            com.isNullOrEmpty() -> {
-                log.info("Shutting down")
-                server.stop()
-                break@loop
-            }
-            com!!.startsWith("send") -> {
-                parseSendCommand(com)?.let { (id, msg) ->
-                    client.send(myId, msg, clock.sendTime, router[id].first, router[id].second)
+    System.`in`.bufferedReader().useLines {
+        it.forEach { line ->
+            if (line.startsWith("send")) {
+                parseSendCommand(line)?.let { (id, msg) ->
+                    if (id in router) client.send(myId, msg, clock.sendTime, router[id].first, router[id].second)
+                    else log.warn("Unknown ID")
                 } ?: log.warn("Send command is incorrect")
+            } else {
+                log.warn("Unknown command")
             }
-            else -> log.warn("Unknown command")
         }
     }
+    log.info("Shutting down...")
+    server.stop()
 }

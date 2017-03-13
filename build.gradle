@@ -1,5 +1,5 @@
 group 'top.sandwwraith'
-version '1.0-SNAPSHOT'
+version '1.0'
 
 task wrapper(type: Wrapper) {
     gradleVersion = '3.3'
@@ -44,7 +44,7 @@ task fatJar(type: Jar, dependsOn: 'copyAddons') {
     destinationDir = outputDir
     manifest {
         attributes 'Implementation-Version': version,
-                'Main-Class': 'top.sandwwraith.simpleservers.AppKt'
+                'Main-Class': 'top.sandwwraith.simpleservers.App'
     }
     baseName = project.name + '-all'
     from { configurations.compile.collect { it.isDirectory() ? it : zipTree(it) } }

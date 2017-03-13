@@ -36,4 +36,6 @@ class Router(filename: String = "process.cfg") {
     }
 
     operator fun get(id: Int) = table.getValue(id)
+
+    operator fun contains(id: Int) = table.contains(id)
 }
